@@ -8,6 +8,7 @@ public class SharedPreferencesClass {
     public final String PrefName = "my-Pref";
     public final String Key_GridRowConfig = "GridRowConfig";
     public final String Key_GridColumnConfig = "SeekbarProgress";
+    public final String Key_CountrySpinner = "SelectCountry";
 
     SharedPreferences sharedPref;
 
@@ -35,12 +36,25 @@ public class SharedPreferencesClass {
         return sharedPref.getInt(Key_GridColumnConfig, -1);
     }
 
-    public boolean isGridRowSet() {
+    public boolean isGridRowCheckKey() {
         return sharedPref.contains(Key_GridRowConfig);
     }
 
-    public boolean isGridColumnSet() {
+    public boolean isGridColumnCheckKey() {
         return sharedPref.contains(Key_GridColumnConfig);
     }
 
+    public boolean isSpinnerItemCheckKey() {
+        return sharedPref.contains(Key_CountrySpinner);
+    }
+
+    public void putSpinnerItem(String item) {
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(Key_CountrySpinner, item);
+        editor.apply();
+    }
+
+    public String getSpinnerItem() {
+        return sharedPref.getString(Key_CountrySpinner, "CANADA");
+    }
 }

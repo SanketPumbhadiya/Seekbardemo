@@ -4,6 +4,7 @@ public class ModelStoreData {
 
     boolean isShowRowGridImage;
     int showColumnGridProgress;
+    String selectedCountryText;
 
     public boolean isShowRowGridImage() {
         return isShowRowGridImage;
@@ -19,5 +20,13 @@ public class ModelStoreData {
 
     public void setShowRowGridImage(boolean showRowGridImage) {
         isShowRowGridImage = showRowGridImage;
+    }
+
+    public String getSelectedCountryText() {
+        return selectedCountryText;
+    }
+
+    public void setSelectedCountryText(String selectedCountryText) {
+        this.selectedCountryText = selectedCountryText;
     }
 }

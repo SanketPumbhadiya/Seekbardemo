@@ -2,4 +2,10 @@
     <string name="app_name">SeekbarDemo&amp;ImageDemo</string>
     <string name="Text">Hello Sanket..!</string>
     <string name="demoText">Hello Android..!</string>
+
+    <string-array name="selectCountryArray">
+        <item>USA</item>
+        <item>CANADA</item>
+        <item>INDIA</item>
+    </string-array>
 </resources>

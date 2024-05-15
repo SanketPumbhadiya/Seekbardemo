@@ -11,8 +11,12 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.RadioButton;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 
 import com.google.gson.Gson;
 
@@ -31,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
     ModelStoreData model;
     String path;
     public final int PERMISSION_STORAGE_CODE = 101;
+    Spinner countrySpinner;
+    ArrayAdapter<String> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,19 +45,26 @@ public class MainActivity extends AppCompatActivity {
 
         rbImage = findViewById(R.id.rb_image);
         rbText = findViewById(R.id.rb_text);
+        countrySpinner = findViewById(R.id.country_spinner);
         gridColumnSeekbar = findViewById(R.id.gridColumn);
         model = new ModelStoreData();
+
         sharedPref = new SharedPreferencesClass(this);
 
+        String[] countryList = getResources().getStringArray(R.array.selectCountryArray);
+
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, countryList);
+
         path = "storage/emulated/0/SeekBarDemo";
+
         requestPermissionIfNeeded();
 
-//        File file = new File(path);
-//        deleteFolder(file);
+        countrySpinner.setAdapter(adapter);
 
         createFolder();
 
-        setUiFromSharedPrefAndPutSharedPref();
+        Log.d("CalledFunction", "checkPrefKeyAndPutValueInPref : 1");
+        checkPrefKeyAndPutValueInPref();
 
         gridColumnSeekbar.setMax(3);
 
@@ -87,28 +100,38 @@ public class MainActivity extends AppCompatActivity {
                 makeJsonString(model);
             }
         });
-    }
+        countrySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-    public void deleteFolder(File folder) {
-
-        if (folder.isDirectory()) {
-            for (File child : folder.listFiles()) {
-                deleteFolder(child);
+                String spinnerItem = countryList[position];
+                Log.d("SpinnerItem", spinnerItem);
+                sharedPref.putSpinnerItem(spinnerItem);
+                model.setSelectedCountryText(spinnerItem);
+                makeJsonString(model);
             }
-        }
-        folder.delete();
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+
+        });
     }
 
-    public void setUiFromSharedPrefAndPutSharedPref() {
+    public void checkPrefKeyAndPutValueInPref() {
+
 // start
+        createFolder();
 
-        boolean isSetRowConfig = sharedPref.isGridRowSet();
-        boolean isSetColumnConfig = sharedPref.isGridColumnSet();
+        boolean isSetRowConfig = sharedPref.isGridRowCheckKey();
+        boolean isSetColumnConfig = sharedPref.isGridColumnCheckKey();
+        boolean isSetCountrySpinnerConfig = sharedPref.isSpinnerItemCheckKey();
 
-        Log.d("CheckValue", "RowConfig : " + isSetRowConfig);
-        Log.d("CheckValue", "ColumnConfig : " + isSetColumnConfig);
+        Log.d("CheckPrefValue", "RowConfig : " + isSetRowConfig);
+        Log.d("CheckPrefValue", "ColumnConfig : " + isSetColumnConfig);
+        Log.d("CheckPrefValue", "SpinnerConfig : " + isSetCountrySpinnerConfig);
 
-        if (isSetRowConfig && isSetColumnConfig) {
+        if (isSetRowConfig && isSetColumnConfig && isSetCountrySpinnerConfig) {
             setUIFromSharedPreference();
         } else {
             String jsonString = readFile();
@@ -117,13 +140,22 @@ public class MainActivity extends AppCompatActivity {
             if (jsonString.length() > 0) {
                 Gson gson = new Gson();
                 model = gson.fromJson(jsonString, ModelStoreData.class);
-                sharedPref.putGridRowConfigShowImage(model.isShowRowGridImage());
-                sharedPref.putGridColumnConfigProgress(model.getShowColumnGridProgress());
+
+                isSetCountrySpinnerConfig = false;
+
+                if (!isSetRowConfig) {
+                    sharedPref.putGridRowConfigShowImage(model.isShowRowGridImage());
+                }
+                if (!isSetColumnConfig) {
+                    sharedPref.putGridColumnConfigProgress(model.getShowColumnGridProgress());
+                }
+                if (!isSetCountrySpinnerConfig) {
+                    sharedPref.putSpinnerItem(model.getSelectedCountryText());
+                }
+                setUIFromSharedPreference();
             }
-            setUIFromSharedPreference();
         }
 // End
-
     }
 
     public void setUIFromSharedPreference() {
@@ -134,8 +166,12 @@ public class MainActivity extends AppCompatActivity {
         } else {
             rbText.setChecked(true);
         }
+
         int progress = sharedPref.getGridColumnProgressConfig();
         gridColumnSeekbar.setProgress(progress);
+
+        String spinnerItem = sharedPref.getSpinnerItem();
+        countrySpinner.setSelection(adapter.getPosition(spinnerItem));
     }
 
     public void createFolder() {
@@ -184,8 +220,6 @@ public class MainActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.MANAGE_EXTERNAL_STORAGE}, PERMISSION_STORAGE_CODE);
             startActivity(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
-        } else {
-            setUiFromSharedPrefAndPutSharedPref();
         }
     }
 
@@ -194,7 +228,8 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_STORAGE_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                setUiFromSharedPrefAndPutSharedPref();
+                Log.d("CalledFunction", "checkPrefKeyAndPutValueInPref : 2");
+                checkPrefKeyAndPutValueInPref();
             }
         }
     }
